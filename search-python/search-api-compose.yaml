@@ -1,0 +1,31 @@
+services:
+  exaone-vector-api:
+    image: reranker:latest
+    container_name: exaone-vector-api
+    runtime: nvidia
+    ports:
+      - "5111:5111"
+    volumes:
+      - ./volume-files/python-start.sh:/python-start.sh
+      - ./volume-files/git-start.sh:/git-start.sh
+    environment:
+      GIT_USERNAME: "${GIT_USERNAME}"
+      GIT_PASSWORD: "${GIT_PASSWORD}"
+      GIT_BRANCH: "${GIT_BRANCH}"
+      NVIDIA_VISIBLE_DEVICES: all
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        chmod +x /git-start.sh
+        chmod +x /python-start.sh
+        /git-start.sh "$GIT_USERNAME" "$GIT_PASSWORD" "$GIT_BRANCH"
+        /python-start.sh
+        tail -f /dev/null
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
